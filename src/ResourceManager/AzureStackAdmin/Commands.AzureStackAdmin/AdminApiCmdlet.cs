@@ -34,28 +34,6 @@ namespace Microsoft.AzureStack.Commands
         private const string DefaultApiVersion = "2015-11-01";
 
         /// <summary>
-        /// Gets or sets the admin base URI
-        /// </summary>
-        [Parameter(ValueFromPipelineByPropertyName = true)]
-        [ValidateNotNull]
-        [ValidateAbsoluteUri]
-        public Uri AdminUri { get; set; }
-
-        /// <summary>
-        /// Gets or sets the authentication token
-        /// </summary>
-        [Parameter(ValueFromPipelineByPropertyName = true)]
-        [ValidateNotNull]
-        public string Token { get; set; }
-
-        /// <summary>
-        /// Gets or sets the API version.
-        /// </summary>
-        [Parameter(ValueFromPipelineByPropertyName = true)]
-        [ValidateNotNull]
-        public string ApiVersion { get; set; }
-
-        /// <summary>
         /// Gets the current default context. overriding it here since DefaultContext could be null for Windows Auth/ADFS environments
         /// </summary>
         protected override AzureContext DefaultContext
@@ -83,11 +61,6 @@ namespace Microsoft.AzureStack.Commands
             var originalValidateCallback = ServicePointManager.ServerCertificateValidationCallback;
             object result;
 
-            this.ValidateParameters();
-
-            // Initialize parameters bound from the pipeline
-            this.ApiVersion = this.ApiVersion ?? DefaultApiVersion;
-
             // Execute the API call(s) for the current cmdlet
             result = this.ExecuteCore();
 
@@ -96,29 +69,6 @@ namespace Microsoft.AzureStack.Commands
             if (result != null)
             {
                 this.WriteObject(result, enumerateCollection: true);
-            }
-        }
-
-        private void ValidateParameters()
-        {
-            // if Token is empty, make sure that we have a valid azure profile
-            if (string.IsNullOrEmpty(this.Token))
-            {
-                if (this.DefaultContext == null)
-                {
-                    throw new ApplicationException(Resources.InvalidProfile);
-                }
-            }
-            else
-            {
-                // note: this code path should be deprecated
-                WriteWarning("Token and AdminUri parameters will be removed in a future release of AzureStackAdmin module.");
-
-                // if token is specified, AdminUri is required as well
-                if (this.AdminUri == null)
-                {
-                    throw new ApplicationException(Resources.TokenAndAdminUriRequired);
-                }
             }
         }
 
@@ -131,36 +81,9 @@ namespace Microsoft.AzureStack.Commands
         /// Gets the Azure Stack management client.
         /// </summary>
         /// <param name="subscriptionId">The subscription identifier.</param>
-        protected AzureStackClient GetAzureStackClient(string subscriptionId = null)
+        protected AzureStackClient GetAzureStackClient()
         {
-            if (string.IsNullOrEmpty(this.Token))
-            {
-                return GetAzureStackClientThruAzureSession();
-            }
-
-            if (string.IsNullOrEmpty(subscriptionId))
-            {
-                return new AzureStackClient(
-                    baseUri: this.AdminUri,
-                    credentials: new TokenCloudCredentials(token: this.Token), 
-                    apiVersion: this.ApiVersion);
-            }
-            else
-            {
-                return new AzureStackClient(
-                    baseUri: this.AdminUri,
-                    credentials: new TokenCloudCredentials(subscriptionId: subscriptionId, token: this.Token),
-                    apiVersion: this.ApiVersion);
-            }
-        }
-
-        /// <summary>
-        /// Gets the Azures Stack management client.
-        /// </summary>
-        /// <param name="subscriptionId">The subscription identifier.</param>
-        protected AzureStackClient GetAzureStackClient(Guid subscriptionId)
-        {
-            return this.GetAzureStackClient(subscriptionId.ToString());
+            return GetAzureStackClientThruAzureSession();
         }
 
         private AzureStackClient GetAzureStackClientThruAzureSession()
@@ -168,7 +91,7 @@ namespace Microsoft.AzureStack.Commands
             var armUri = this.DefaultContext.Environment.GetEndpointAsUri(AzureEnvironment.Endpoint.ResourceManager);
             var credentials = AzureSession.AuthenticationFactory.GetSubscriptionCloudCredentials(this.DefaultContext);
 
-            return AzureSession.ClientFactory.CreateCustomClient<AzureStackClient>(armUri, credentials, this.ApiVersion);
+            return AzureSession.ClientFactory.CreateCustomClient<AzureStackClient>(armUri, credentials);
         }
     }
 }
