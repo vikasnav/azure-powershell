@@ -39,6 +39,7 @@ namespace Microsoft.AzureStack.Commands
         /// </summary>
         protected override object ExecuteCore()
         {
+            this.ApiVersion = GalleryAdminApiVersion;
             using (var client = this.GetAzureStackClient())
             {
                 return client.GalleryItem.Delete(this.Name);

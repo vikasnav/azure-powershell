@@ -103,6 +103,7 @@ namespace Microsoft.AzureStack.Commands
         /// </summary>
         protected override object ExecuteCore()
         {
+            this.ApiVersion = UsageApiVersion;
             this.WriteVerbose(Resources.AddingUsageConnection.FormatArgs(this.Name));
             using (var client = this.GetAzureStackClient())
             {

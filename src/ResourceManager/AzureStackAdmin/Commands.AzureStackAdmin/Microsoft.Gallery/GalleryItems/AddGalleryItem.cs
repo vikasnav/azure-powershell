@@ -30,7 +30,6 @@ namespace Microsoft.AzureStack.Commands
     [OutputType(typeof(AzureOperationResponse))]
     public class AddGalleryItem : AdminApiCmdlet
     {
-
         /// <summary>
         /// Gets or sets the gallery item uri.
         /// </summary>
@@ -47,6 +46,7 @@ namespace Microsoft.AzureStack.Commands
         /// </summary>
         protected override object ExecuteCore()
         {
+            this.ApiVersion = GalleryAdminApiVersion;
             using (var client = this.GetAzureStackClient())
             {
                 var galleryItemUriPayload = new GalleryItemUriPayload()

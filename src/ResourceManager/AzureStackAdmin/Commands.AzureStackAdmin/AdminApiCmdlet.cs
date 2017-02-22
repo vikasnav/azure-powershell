@@ -31,7 +31,26 @@ namespace Microsoft.AzureStack.Commands
         /// <summary>
         /// The default API version.
         /// </summary>
-        private const string DefaultApiVersion = "2015-11-01";
+        private string DefaultApiVersion = "2015-11-01";
+
+        protected const string SubscriptionApiVersion = "2015-04-01";
+        protected const string GalleryAdminApiVersion = "2015-04-01";
+        protected const string UsageApiVersion = "2015-06-01-preview";
+
+        /// <summary>
+        /// Gets or sets the API version. Not a parameter that is to be passed from outside
+        /// </summary>
+        protected string ApiVersion
+        {
+            get
+            {
+                return DefaultApiVersion;
+            }
+            set
+            {
+                DefaultApiVersion = value;
+            }
+        }
 
         /// <summary>
         /// Gets the current default context. overriding it here since DefaultContext could be null for Windows Auth/ADFS environments
@@ -83,7 +102,8 @@ namespace Microsoft.AzureStack.Commands
         /// <param name="subscriptionId">The subscription identifier.</param>
         protected AzureStackClient GetAzureStackClient()
         {
-            return GetAzureStackClientThruAzureSession();
+            this.ApiVersion = SubscriptionApiVersion;
+           return GetAzureStackClientThruAzureSession();
         }
 
         private AzureStackClient GetAzureStackClientThruAzureSession()
@@ -91,7 +111,7 @@ namespace Microsoft.AzureStack.Commands
             var armUri = this.DefaultContext.Environment.GetEndpointAsUri(AzureEnvironment.Endpoint.ResourceManager);
             var credentials = AzureSession.AuthenticationFactory.GetSubscriptionCloudCredentials(this.DefaultContext);
 
-            return AzureSession.ClientFactory.CreateCustomClient<AzureStackClient>(armUri, credentials);
+            return AzureSession.ClientFactory.CreateCustomClient<AzureStackClient>(armUri, credentials, this.ApiVersion);
         }
     }
 }
